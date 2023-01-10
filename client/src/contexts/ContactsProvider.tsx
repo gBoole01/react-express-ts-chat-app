@@ -5,7 +5,7 @@ type ContactsProviderProps = {
   children: ReactNode
 }
 
-type Contact = {
+export type Contact = {
   id: string
   name: string
 }

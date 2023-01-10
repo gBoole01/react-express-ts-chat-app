@@ -1,4 +1,5 @@
 import { ContactsProvider } from '../contexts/ContactsProvider'
+import { ConversationsProvider } from '../contexts/ConversationsProvider'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { Dashboard } from './Dashboard'
 import Login from './Login'
@@ -8,7 +9,9 @@ function App() {
 
   const dashboard = (
     <ContactsProvider>
-      <Dashboard id={id} />
+      <ConversationsProvider>
+        <Dashboard id={id} />
+      </ConversationsProvider>
     </ContactsProvider>
   )
 
