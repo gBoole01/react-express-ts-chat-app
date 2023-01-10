@@ -53,7 +53,7 @@ export function Sidebar({ id }: SidebarProps) {
         </Button>
       </Tab.Container>
 
-      <Modal show={modalOpen} hide={closeModal}>
+      <Modal show={modalOpen} onHide={closeModal}>
         {conversationsOpen ? (
           <NewConversationModal closeModal={closeModal} />
         ) : (
