@@ -19,7 +19,23 @@ export default class App {
 
   public listenWebsocket() {
     this.io.on('connection', (socket) => {
-      socket.join('test')
+      const [id] = socket.handshake.query.id
+      socket.join(id)
+
+      socket.on(
+        'send-message',
+        ({ recipients, text }: { recipients: string[]; text: string }) => {
+          recipients.forEach((recipient) => {
+            const newRecipients = recipients.filter((r) => r != recipient)
+            newRecipients.push(id)
+            socket.broadcast.to(recipient).emit('receive-message', {
+              recipients: newRecipients,
+              sender: id,
+              text,
+            })
+          })
+        },
+      )
       console.log(`New Connection on ${this.io} with socket ${socket}`)
     })
     console.log(`Initializing Websocket`)
