@@ -12,15 +12,18 @@ export default class App {
     this.app = express()
     this.server = createServer(this.app)
     this.io = new Server(this.server, {
-      cors: { origin: 'http://localhost:5173' },
+      cors: { origin: 'http://localhost:5173', credentials: true },
     })
     this.port = port
   }
 
   public listenWebsocket() {
+    console.log(`⌛ Initializing Websocket Listeners..`)
+
     this.io.on('connection', (socket) => {
-      const [id] = socket.handshake.query.id
+      const id = socket.handshake.auth.id as string
       socket.join(id)
+      console.log(`👤 User #${id} is connected`)
 
       socket.on(
         'send-message',
@@ -34,16 +37,15 @@ export default class App {
               text,
             })
           })
+          console.log(`👤 User #${id} sent a message`)
         },
       )
-      console.log(`New Connection on ${this.io} with socket ${socket}`)
     })
-    console.log(`Initializing Websocket`)
   }
 
   public listen() {
-    this.app.listen(this.port, () => {
-      console.log(`App listening on the port ${this.port}`)
+    this.server.listen(this.port, () => {
+      console.log(`✅ App listening on the port ${this.port}`)
     })
   }
 }
