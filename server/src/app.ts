@@ -15,9 +15,11 @@ export default class App {
       cors: { origin: 'http://localhost:5173', credentials: true },
     })
     this.port = port
+
+    this.registerWebsocketEvents()
   }
 
-  public listenWebsocket() {
+  public registerWebsocketEvents() {
     console.log(`⌛ Initializing Websocket Listeners..`)
 
     this.io.on('connection', (socket) => {
