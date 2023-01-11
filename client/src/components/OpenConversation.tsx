@@ -29,7 +29,9 @@ export function OpenConversation() {
             return (
               <div
                 className={`my-1 d-flex flex-column ${
-                  message.fromMe ? 'align-self-end' : ''
+                  message.fromMe
+                    ? 'align-self-end align-items-end'
+                    : 'align-items-start'
                 }`}
                 key={index}
                 ref={lastMessage ? scrollToBottom : null}

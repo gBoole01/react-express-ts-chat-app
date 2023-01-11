@@ -1,6 +1,14 @@
-import { createContext, ReactNode, useContext, useState } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { Contact, useContacts } from './ContactsProvider'
+import { useSocket } from './SocketProvider'
 
 type ConversationsProviderProps = {
   id: string
@@ -56,46 +64,62 @@ export function ConversationsProvider({
 
   const { contacts } = useContacts()
 
+  const { socket } = useSocket()
+
   function createConversation(recipients: string[]) {
     setConversations((prevConversations) => {
       return [...prevConversations, { recipients, messages: [] }]
     })
   }
 
-  function addMessageToConversation({
-    recipients,
-    text,
-    sender,
-  }: {
-    recipients: string[]
-    text: string
-    sender: string
-  }) {
-    setConversations((prevConversations) => {
-      let madeChange = false
-      const newMessage = { sender, text }
+  const addMessageToConversation = useCallback(
+    ({
+      recipients,
+      text,
+      sender,
+    }: {
+      recipients: string[]
+      text: string
+      sender: string
+    }) => {
+      setConversations((prevConversations) => {
+        let madeChange = false
+        const newMessage = { sender, text }
 
-      const newConversations = prevConversations.map((conversation) => {
-        if (arrayEquality(conversation.recipients, recipients)) {
-          madeChange = true
-          return {
-            ...conversation,
-            messages: [...conversation.messages, newMessage],
+        const newConversations = prevConversations.map((conversation) => {
+          if (arrayEquality(conversation.recipients, recipients)) {
+            madeChange = true
+            return {
+              ...conversation,
+              messages: [...conversation.messages, newMessage],
+            }
           }
+
+          return conversation
+        })
+
+        if (madeChange) {
+          return newConversations
+        } else {
+          return [...prevConversations, { recipients, messages: [newMessage] }]
         }
-
-        return conversation
       })
+    },
+    [setConversations],
+  )
 
-      if (madeChange) {
-        return newConversations
-      } else {
-        return [...prevConversations, { recipients, messages: [newMessage] }]
-      }
-    })
-  }
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('receive-message', addMessageToConversation)
+
+    return () => {
+      socket.off('receive-message')
+    }
+  }, [socket, addMessageToConversation])
 
   function sendMessage(recipients: string[], text: string) {
+    if (socket) socket.emit('send-message', { recipients, text })
     addMessageToConversation({ recipients, text, sender: id })
   }
 
